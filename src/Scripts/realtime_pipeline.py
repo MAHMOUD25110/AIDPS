@@ -5,11 +5,20 @@ import datetime
 import sqlite3
 from scapy.all import sniff, IP, TCP, UDP, ICMP
 
-from config import DB_PATH, BLOCK_DURATION_MINUTES
-from database import init_db, log_alert, log_blocked_ip, load_blocked_ips
-from firewall import block_ip, unblock_ip
-from features import extract_features, preprocess_features
-from model_loader import load_models
+import sys
+import os
+
+# Ensure the root project directory (parent of src) is in sys.path
+# so that absolute imports like `from src.config` work perfectly.
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from src.config import DB_PATH, BLOCK_DURATION_MINUTES
+from src.Database.database import init_db, log_alert, log_blocked_ip, load_blocked_ips
+from src.Scripts.firewall import block_ip, unblock_ip
+from src.Scripts.features import extract_features, preprocess_features
+from src.Scripts.model_loader import load_models
 
 warnings.filterwarnings('ignore')
 

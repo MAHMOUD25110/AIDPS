@@ -1,8 +1,15 @@
 """Handles loading of the trained machine learning model and scalers."""
 
+import sys
 import os
+
+# Ensure the project root is in sys.path so that absolute imports work
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 import joblib
-from config import MODEL_PATH, SCALER_PATH, COLUMNS_PATH
+from src.config import MODEL_PATH, SCALER_PATH, COLUMNS_PATH
 
 def load_models():
     """Loads the trained model, scaler, and one-hot encoded columns structure."""
