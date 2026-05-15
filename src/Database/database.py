@@ -91,3 +91,93 @@ def load_blocked_ips():
     finally:
         conn.close()
     return blocked
+
+
+def get_recent_alerts(limit=50):
+    """Fetches the most recent alerts from the database."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            SELECT id, timestamp, src_ip, dst_ip, protocol, prediction, action
+            FROM alerts
+            ORDER BY id DESC
+            LIMIT ?
+        ''', (limit,))
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    except Exception as e:
+        print(f"[-] Error fetching alerts: {e}")
+        return []
+    finally:
+        conn.close()
+
+
+def get_all_blocked_ips():
+    """Fetches all currently blocked IPs and their expiry times."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT ip, block_time, expiry_time FROM blocked_ips')
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    except Exception as e:
+        print(f"[-] Error fetching blocked IPs: {e}")
+        return []
+    finally:
+        conn.close()
+
+
+def get_stats_over_time():
+    """Fetches alert statistics grouped by protocol and prediction over time."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT COUNT(*) as total FROM alerts')
+        total_alerts = cursor.fetchone()['total']
+        
+        cursor.execute('SELECT protocol, COUNT(*) as count FROM alerts GROUP BY protocol')
+        protocol_dist = {row['protocol']: row['count'] for row in cursor.fetchall()}
+        
+        cursor.execute('SELECT prediction, COUNT(*) as count FROM alerts GROUP BY prediction')
+        prediction_dist = {row['prediction']: row['count'] for row in cursor.fetchall()}
+        
+        # SQLite substr to group by hour (YYYY-MM-DD HH)
+        cursor.execute('''
+            SELECT substr(timestamp, 1, 13) as hour, COUNT(*) as count 
+            FROM alerts 
+            GROUP BY hour 
+            ORDER BY hour DESC 
+            LIMIT 24
+        ''')
+        timeline = [{'hour': row['hour'] + ':00:00', 'count': row['count']} for row in cursor.fetchall()]
+        timeline.reverse() # chronological order
+        
+        return {
+            'total_alerts': total_alerts,
+            'protocol_distribution': protocol_dist,
+            'prediction_distribution': prediction_dist,
+            'timeline': timeline
+        }
+    except Exception as e:
+        print(f"[-] Error fetching stats: {e}")
+        return {}
+    finally:
+        conn.close()
+
+
+def unblock_ip_manual(ip):
+    """Manually unblocks an IP and removes it from the database."""
+    unblock_ip(ip)
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        cursor.execute('DELETE FROM blocked_ips WHERE ip = ?', (ip,))
+        conn.commit()
+    except Exception as e:
+        print(f"[-] Error removing IP from DB: {e}")
+    finally:
+        conn.close()

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDPS Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Navigation -->
+        <aside class="sidebar glass-panel">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h2>IDPS Core</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">Alerts</a>
+                <a href="#">Blocked IPs</a>
+                <a href="#">Settings</a>
+            </nav>
+            <div class="system-status">
+                <div class="status-indicator"></div>
+                <span>System Active</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1>Dashboard Overview</h1>
+                <div class="date-time" id="current-time">Loading...</div>
+            </header>
+
+            <!-- Metrics Cards -->
+            <section class="metrics-grid">
+                <div class="metric-card glass-panel">
+                    <div class="metric-icon alert-icon"></div>
+                    <div class="metric-info">
+                        <h3>Total Alerts</h3>
+                        <p id="total-alerts-val">0</p>
+                    </div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <div class="metric-icon block-icon"></div>
+                    <div class="metric-info">
+                        <h3>Active Blocks</h3>
+                        <p id="active-blocks-val">0</p>
+                    </div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <div class="metric-icon protocol-icon"></div>
+                    <div class="metric-info">
+                        <h3>Top Protocol</h3>
+                        <p id="top-protocol-val">-</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section glass-panel">
+                <div class="chart-header">
+                    <h2>Traffic Classification Over Time</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Tables Section -->
+            <section class="tables-section">
+                <!-- Recent Alerts -->
+                <div class="table-container glass-panel">
+                    <h2>Recent Alerts</h2>
+                    <div class="table-scroll">
+                        <table id="alerts-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Source IP</th>
+                                    <th>Target IP</th>
+                                    <th>Protocol</th>
+                                    <th>Prediction</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Blocked IPs -->
+                <div class="table-container glass-panel">
+                    <h2>Blocked IPs</h2>
+                    <div class="table-scroll">
+                        <table id="blocked-table">
+                            <thead>
+                                <tr>
+                                    <th>IP Address</th>
+                                    <th>Block Time</th>
+                                    <th>Expiry Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
