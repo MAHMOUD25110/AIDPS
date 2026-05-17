@@ -62,7 +62,7 @@ def log_blocked_ip(ip, duration_minutes):
     cursor.execute('''
         INSERT OR REPLACE INTO blocked_ips (ip, block_time, expiry_time)
         VALUES (?, ?, ?)
-    ''', (now.strftime("%Y-%m-%d %H:%M:%S"), expiry.strftime("%Y-%m-%d %H:%M:%S")))
+    ''', (ip, now.strftime("%Y-%m-%d %H:%M:%S"), expiry.strftime("%Y-%m-%d %H:%M:%S")))
     conn.commit()
     conn.close()
     return expiry.timestamp()
