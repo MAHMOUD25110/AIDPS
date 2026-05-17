@@ -98,27 +98,36 @@ def extract_features(packet):
 def preprocess_features(features_dict, scaler, model_columns):
     """
     Preprocess the features dictionary to match the model's expected input.
-    Applies one-hot encoding, aligns columns, and scales the features.
+    Mirrors the training pipeline exactly:
+      1. Scale numerical columns (all except protocol_type, service, flag)
+      2. One-hot encode categorical columns
+      3. Align to the model's expected 122 columns
     """
     df = pd.DataFrame([features_dict])
     
-    # One-hot encoding for categorical variables
     categorical_cols = ['protocol_type', 'service', 'flag']
+
+    # Step 1: Scale numerical columns BEFORE one-hot encoding (mirrors training order).
+    # The scaler was fitted on all columns except the 3 categoricals.
+    if scaler is not None:
+        if hasattr(scaler, 'feature_names_in_'):
+            # Scale only the exact columns the scaler was fitted on
+            num_cols_to_scale = [c for c in scaler.feature_names_in_ if c in df.columns]
+            df[num_cols_to_scale] = scaler.transform(df[num_cols_to_scale])
+        else:
+            # Fallback: scale everything except categoricals
+            num_cols = [c for c in df.columns if c not in categorical_cols]
+            df[num_cols] = scaler.transform(df[num_cols])
+
+    # Step 2: One-hot encode categorical variables
     df = pd.get_dummies(df, columns=categorical_cols)
     
-    # Ensure all columns from training are present and in the correct order
+    # Step 3: Align to model's expected columns (fill missing one-hot cols with 0, drop extras)
     if model_columns is not None:
         missing_cols = set(model_columns) - set(df.columns)
         for c in missing_cols:
             df[c] = 0
-            
-        # Reorder columns to match the training data exactly
         df = df[model_columns]
         
-    # Scale numerical features
-    if scaler is not None:
-        # Some scalers return arrays, we want to keep it as a DataFrame or Array for predict
-        scaled_array = scaler.transform(df)
-        df = pd.DataFrame(scaled_array, columns=df.columns)
-        
     return df
+

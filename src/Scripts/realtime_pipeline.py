@@ -30,6 +30,11 @@ def start_pipeline():
         print("Cannot start pipeline without a valid model.")
         return
 
+    # model_columns pkl was saved from the full dataframe (includes 'outcome' and possibly 'level').
+    # Strip those non-feature columns to get the exact 122 cols the model was trained on.
+    if model_columns is not None:
+        model_columns = [c for c in model_columns if c not in ('outcome', 'level')]
+
     blocked_ips = load_blocked_ips()
 
     def packet_callback(packet):
@@ -88,10 +93,12 @@ def start_pipeline():
                 log_alert(src_ip, dst_ip, protocol, prediction_val, action_taken)
                 expiry_ts = log_blocked_ip(src_ip, BLOCK_DURATION_MINUTES)
                 blocked_ips[src_ip] = expiry_ts
+            else:
+                # Debug print to verify packets are captured and seen as 'normal'
+                print(f"[DEBUG] Packet from {src_ip} -> {dst_ip} classified as: {prediction[0]}")
                 
         except Exception as e:
-            # print(f"Error processing packet: {e}")
-            pass
+            print(f"Error processing packet: {e}")
 
     print("\n[+] Starting real-time Intrusion Detection System...")
     print("[+] Capturing packets. Press Ctrl+C to stop.")
